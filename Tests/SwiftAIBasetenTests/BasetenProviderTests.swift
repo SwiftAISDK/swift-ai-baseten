@@ -1,0 +1,363 @@
+@testable import SwiftAIBaseten
+@testable import SwiftAI
+@testable import SwiftAIProvider
+@testable import SwiftAIProviderUtilities
+@testable import SwiftAITransport
+import Foundation
+import Testing
+
+@Test func basetenChatUsesBearerAuthAndModelAPIBase() async throws {
+    let transport = RecordingTransport(response: jsonResponse("""
+    {"choices":[{"message":{"content":"baseten"},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}
+    """))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(apiKey: "baseten-key", transport: transport))
+    let model = try provider.languageModel("deepseek-ai/DeepSeek-V3-0324")
+
+    let result = try await model.generate(LanguageModelRequest(messages: [.user("Hi")]))
+
+    #expect(result.text == "baseten")
+    let request = try #require(await transport.requests().first)
+    #expect(request.url.absoluteString == "https://inference.baseten.co/v1/chat/completions")
+    #expect(request.headers["authorization"] == "Bearer baseten-key")
+    #expect(request.headers["user-agent"] == "ai-sdk-baseten/2.1.56")
+    let body = try decodeJSONBody(try #require(request.body))
+    #expect(body["model"]?.stringValue == "deepseek-ai/DeepSeek-V3-0324")
+}
+
+@Test func basetenChatForwardsJSONSchemaStructuredOutputsByDefault() async throws {
+    let transport = RecordingTransport(response: jsonResponse(
+        #"{"choices":[{"message":{"content":"{\"value\":\"ok\"}"},"finish_reason":"stop"}],"usage":{"total_tokens":3}}"#
+    ))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(apiKey: "baseten-key", transport: transport))
+
+    _ = try await provider.chatModel("deepseek-ai/DeepSeek-V3-0324").generate(LanguageModelRequest(
+        messages: [.user("Return JSON")],
+        extraBody: [
+            "responseFormat": [
+                "type": "json",
+                "name": "answer",
+                "schema": ["type": "object", "properties": ["value": ["type": "string"]]]
+            ]
+        ]
+    ))
+
+    let body = try decodeJSONBody(try #require((await transport.requests()).first?.body))
+    #expect(body["response_format"]?["type"]?.stringValue == "json_schema")
+    #expect(body["response_format"]?["json_schema"]?["name"]?.stringValue == "answer")
+}
+
+@Test func basetenChatUsesCustomBaseURLHeadersAndUserAgentLikeUpstream() async throws {
+    let transport = RecordingTransport(response: jsonResponse("""
+    {"choices":[{"message":{"content":"custom-base"},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}
+    """))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        baseURL: "https://custom.baseten.co/v1/",
+        headers: ["user-agent": "CustomApp/1.0", "Custom-Header": "custom-value"],
+        transport: transport
+    ))
+    let model = try provider.chatModel("deepseek-ai/DeepSeek-V3-0324")
+
+    let result = try await model.generate(LanguageModelRequest(messages: [.user("Hi")]))
+
+    #expect(result.text == "custom-base")
+    let request = try #require(await transport.requests().first)
+    #expect(request.url.absoluteString == "https://custom.baseten.co/v1/chat/completions")
+    #expect(request.headers["authorization"] == "Bearer baseten-key")
+    #expect(request.headers["custom-header"] == "custom-value")
+    #expect(request.headers["user-agent"] == "CustomApp/1.0 ai-sdk-baseten/2.1.56")
+}
+
+@Test func basetenReadsEnvironmentAPIKeyAndReportsMissingKeyLikeUpstream() async throws {
+    try await withTemporaryBasetenEnvironment(["BASETEN_API_KEY": "env-baseten-key"]) {
+        let transport = RecordingTransport(response: jsonResponse("""
+        {"choices":[{"message":{"content":"env"},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}
+        """))
+        let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(transport: transport))
+        _ = try await provider.chatModel("deepseek-ai/DeepSeek-V3-0324").generate(LanguageModelRequest(messages: [.user("Hi")]))
+
+        let request = try #require(await transport.requests().first)
+        #expect(request.headers["authorization"] == "Bearer env-baseten-key")
+        #expect(request.headers["user-agent"] == "ai-sdk-baseten/2.1.56")
+    }
+
+    _ = await withTemporaryBasetenEnvironment(["BASETEN_API_KEY": nil]) {
+        #expect(throws: AIError.missingAPIKey(provider: "baseten", environmentVariables: ["BASETEN_API_KEY"])) {
+            _ = try AIProviders.baseten(configuration: BasetenProviderSettings())
+        }
+    }
+}
+
+@Test func basetenChatUsesModelURLAndDefaultPlaceholderModel() async throws {
+    let transport = RecordingTransport(response: jsonResponse("""
+    {"choices":[{"message":{"content":"custom"},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}
+    """))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        modelURL: "https://model-123.api.baseten.co/environments/production/sync/v1",
+        transport: transport
+    ))
+    let model = try provider.chatModel()
+
+    let result = try await model.generate(LanguageModelRequest(messages: [.user("Hi")]))
+
+    #expect(model.modelID == "placeholder")
+    #expect(result.text == "custom")
+    let request = try #require(await transport.requests().first)
+    #expect(request.url.absoluteString == "https://model-123.api.baseten.co/environments/production/sync/v1/chat/completions")
+    let body = try decodeJSONBody(try #require(request.body))
+    #expect(body["model"]?.stringValue == "placeholder")
+}
+
+@Test func basetenChatFallsBackToModelAPIForPlainSyncModelURLLikeUpstream() async throws {
+    let transport = RecordingTransport(response: jsonResponse("""
+    {"choices":[{"message":{"content":"fallback"},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}
+    """))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        modelURL: "https://model-123.api.baseten.co/environments/production/sync",
+        transport: transport
+    ))
+    let model = try provider.chatModel()
+
+    let result = try await model.generate(LanguageModelRequest(messages: [.user("Hi")]))
+
+    #expect(model.modelID == "chat")
+    #expect(result.text == "fallback")
+    let request = try #require(await transport.requests().first)
+    #expect(request.url.absoluteString == "https://inference.baseten.co/v1/chat/completions")
+    let body = try decodeJSONBody(try #require(request.body))
+    #expect(body["model"]?.stringValue == "chat")
+}
+
+@Test func basetenChatRejectsPredictModelURL() throws {
+    let predictProvider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        modelURL: "https://model-123.api.baseten.co/environments/production/predict",
+        transport: RecordingTransport(response: jsonResponse("{}"))
+    ))
+
+    #expect(throws: AIError.invalidArgument(argument: "modelURL", message: "Not supported. You must use a /sync/v1 endpoint for chat models.")) {
+        _ = try predictProvider.chatModel()
+    }
+    #expect(throws: AIError.invalidArgument(argument: "modelURL", message: "Not supported. You must use a /sync/v1 endpoint for chat models.")) {
+        _ = try predictProvider.languageModel("chat")
+    }
+}
+
+@Test func basetenEmbeddingRequiresSyncModelURL() throws {
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(apiKey: "baseten-key", transport: RecordingTransport(response: jsonResponse("{}"))))
+
+    #expect(throws: AIError.invalidArgument(argument: "modelURL", message: "No model URL provided for embeddings. Please set modelURL option for embeddings.")) {
+        _ = try provider.embeddingModel("embeddings")
+    }
+}
+
+@Test func basetenEmbeddingUsesOpenAICompatibleHTTPShapeLikeUpstream() async throws {
+    let transport = RecordingTransport(response: jsonResponse(#"{"object":"list","data":[{"object":"embedding","embedding":[0.1,0.2],"index":0}],"model":"embeddings","usage":{"prompt_tokens":3,"total_tokens":3}}"#))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        modelURL: "https://model-123.api.baseten.co/environments/production/sync",
+        transport: transport
+    ))
+    let model = try provider.embeddingModel()
+    #expect(model.maxEmbeddingsPerCall == 128)
+
+    let result = try await model.embed(EmbeddingRequest(
+        values: ["hello"],
+        dimensions: 128,
+        extraBody: [
+            "encoding_format": .string("float"),
+            "user": .string("swift-user"),
+            "baseten": .object(["input_type": .string("query")])
+        ]
+    ))
+
+    #expect(result.embeddings == [[0.1, 0.2]])
+    #expect(result.usage?.totalTokens == 3)
+    #expect(result.requestMetadata.body?["dimensions"]?.intValue == 128)
+    #expect(result.requestMetadata.body?["encoding_format"]?.stringValue == "float")
+    #expect(result.requestMetadata.body?["user"]?.stringValue == "swift-user")
+    #expect(result.requestMetadata.body?["baseten"] == nil)
+    #expect(result.requestMetadata.body?["input_type"]?.stringValue == "query")
+    #expect(model.modelID == "embeddings")
+    let request = try #require(await transport.requests().first)
+    #expect(request.url.absoluteString == "https://model-123.api.baseten.co/environments/production/sync/v1/embeddings")
+    #expect(request.headers["authorization"] == "Bearer baseten-key")
+    #expect(request.headers["user-agent"] == "ai-sdk-baseten/2.1.56")
+    #expect(request.headers["x-baseten-customer-request-id"] == nil)
+    let body = try decodeJSONBody(try #require(request.body))
+    #expect(body["model"]?.stringValue == "embeddings")
+    #expect(body["input"]?[0]?.stringValue == "hello")
+    #expect(body["dimensions"]?.intValue == 128)
+    #expect(body["encoding_format"]?.stringValue == "float")
+    #expect(body["user"]?.stringValue == "swift-user")
+    #expect(body["input_type"]?.stringValue == "query")
+    #expect(body["baseten"] == nil)
+}
+
+@Test func basetenEmbeddingUsesNestedOpenAIErrorEnvelopeLikeUpstream() async throws {
+    let transport = RecordingTransport(response: AIHTTPResponse(
+        statusCode: 404,
+        headers: ["content-type": "application/json"],
+        body: Data(#"{"error":{"message":"deployment not found","type":"not_found","code":404}}"#.utf8)
+    ))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        modelURL: "https://model-123.api.baseten.co/environments/production/sync/v1",
+        transport: transport
+    ))
+
+    do {
+        _ = try await provider.embeddingModel().embed(EmbeddingRequest(values: ["hello"]))
+        Issue.record("Expected Baseten embedding API error.")
+    } catch let error as AIError {
+        let apiError = try #require(error.apiCallError)
+        #expect(apiError.provider == "baseten.embedding")
+        #expect(apiError.statusCode == 404)
+        #expect(apiError.responseBody == "deployment not found")
+    }
+}
+
+@Test func basetenChatStreamsUsageByDefaultLikeUpstream() async throws {
+    let transport = RecordingTransport(response: sseResponse(#"""
+    data: {"choices":[{"delta":{"content":"ok"}}]}
+
+    data: {"choices":[],"usage":{"prompt_tokens":2,"completion_tokens":1,"total_tokens":3}}
+
+    data: [DONE]
+
+    """#))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(apiKey: "baseten-key", transport: transport))
+
+    for try await _ in try provider.chatModel("chat").stream(LanguageModelRequest(messages: [.user("Hi")])) {}
+
+    let request = try #require(await transport.requests().first)
+    let body = try decodeJSONBody(try #require(request.body))
+    #expect(body["stream_options"]?["include_usage"]?.boolValue == true)
+}
+
+@Test func basetenEmbeddingSupportsSyncV1ModelURLAndRejectsPredict() async throws {
+    let transport = RecordingTransport(response: jsonResponse(#"{"data":[{"embedding":[0.3,0.4]}]}"#))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        modelURL: "https://model-123.api.baseten.co/environments/production/sync/v1",
+        transport: transport
+    ))
+
+    _ = try await provider.embeddingModel("embed").embed(EmbeddingRequest(values: ["hello"]))
+
+    let request = try #require(await transport.requests().first)
+    #expect(request.url.absoluteString == "https://model-123.api.baseten.co/environments/production/sync/v1/embeddings")
+
+    let predictProvider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        modelURL: "https://model-123.api.baseten.co/environments/production/predict",
+        transport: RecordingTransport(response: jsonResponse("{}"))
+    ))
+
+    #expect(throws: AIError.invalidArgument(argument: "modelURL", message: "Not supported. You must use a /sync or /sync/v1 endpoint for embeddings.")) {
+        _ = try predictProvider.embeddingModel()
+    }
+}
+
+@Test func basetenEmbeddingBatchesHTTPRequestsAndAdjustsIndexesLikeUpstream() async throws {
+    let values = (0..<129).map { "value-\($0)" }
+    let transport = RecordingTransport(responses: [
+        jsonResponse(#"{"object":"list","data":[{"object":"embedding","embedding":[1],"index":0}],"model":"embed","usage":{"prompt_tokens":2,"total_tokens":2}}"#),
+        jsonResponse(#"{"object":"list","data":[{"object":"embedding","embedding":[2],"index":0}],"model":"embed","usage":{"prompt_tokens":3,"total_tokens":3}}"#)
+    ])
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        modelURL: "https://model-123.api.baseten.co/environments/production/sync/v1",
+        transport: transport
+    ))
+
+    let result = try await provider.embeddingModel("embed").embed(EmbeddingRequest(values: values))
+
+    #expect(result.embeddings == [[1], [2]])
+    #expect(result.usage?.inputTokens == 5)
+    #expect(result.usage?.totalTokens == 5)
+    #expect(result.rawValue["data"]?[0]?["index"]?.intValue == 0)
+    #expect(result.rawValue["data"]?[1]?["index"]?.intValue == 128)
+    let requests = await transport.requests()
+    #expect(requests.count == 2)
+    let firstBody = try decodeJSONBody(try #require(requests[0].body))
+    let secondBody = try decodeJSONBody(try #require(requests[1].body))
+    #expect(firstBody["input"]?.arrayValue?.count == 128)
+    #expect(secondBody["input"]?.arrayValue?.count == 1)
+    #expect(firstBody["model"]?.stringValue == "embed")
+    #expect(secondBody["model"]?.stringValue == "embed")
+}
+
+@Test func basetenEmbeddingRejectsEmptyInputBeforeRequest() async throws {
+    let transport = RecordingTransport(response: jsonResponse(#"{}"#))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        modelURL: "https://model-123.api.baseten.co/environments/production/sync",
+        transport: transport
+    ))
+
+    await #expect(throws: AIError.invalidArgument(argument: "values", message: "Input list cannot be empty")) {
+        _ = try await provider.embeddingModel().embed(EmbeddingRequest(values: []))
+    }
+    #expect(await transport.requests().isEmpty)
+}
+
+@Test func basetenImageModelIsUnsupportedLikeUpstreamNoSuchModel() throws {
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(apiKey: "baseten-key", transport: RecordingTransport(response: jsonResponse("{}"))))
+
+    #expect(throws: AIError.unsupportedModel(provider: "baseten", capability: .image, modelID: "test-model")) {
+        _ = try provider.imageModel("test-model")
+    }
+}
+
+@Test func basetenChatUsesUpstreamStringErrorEnvelope() async throws {
+    let transport = RecordingTransport(response: AIHTTPResponse(
+        statusCode: 429,
+        headers: ["content-type": "application/json"],
+        body: Data(#"{"error":"rate limit exceeded"}"#.utf8)
+    ))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(apiKey: "baseten-key", transport: transport))
+    let model = try provider.chatModel("deepseek-ai/DeepSeek-V3-0324")
+
+    do {
+        _ = try await model.generate(LanguageModelRequest(messages: [.user("Hi")]))
+        Issue.record("Expected Baseten API error.")
+    } catch let error as AIError {
+        let apiError = try #require(error.apiCallError)
+        #expect(apiError.provider == "baseten.chat")
+        #expect(apiError.statusCode == 429)
+        #expect(apiError.responseBody == "rate limit exceeded")
+        #expect(apiError.isRetryable)
+    }
+}
+
+private func withTemporaryBasetenEnvironment<T>(_ updates: [String: String?], operation: () async throws -> T) async rethrows -> T {
+    var previous: [String: String] = [:]
+    var missing = Set<String>()
+    for key in updates.keys {
+        if let value = getenv(key).map({ String(cString: $0) }) {
+            previous[key] = value
+        } else {
+            missing.insert(key)
+        }
+    }
+    for (key, value) in updates {
+        if let value {
+            setenv(key, value, 1)
+        } else {
+            unsetenv(key)
+        }
+    }
+    defer {
+        for key in updates.keys {
+            if missing.contains(key) {
+                unsetenv(key)
+            } else if let value = previous[key] {
+                setenv(key, value, 1)
+            }
+        }
+    }
+    return try await operation()
+}

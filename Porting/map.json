@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "package": "swift-ai-baseten",
+  "status": "coarse-import",
+  "upstream": [
+    {
+      "name": "@ai-sdk/baseten",
+      "implementation": [
+        "packages/baseten/src"
+      ],
+      "tests": [
+        "packages/baseten/src/baseten-embedding-model.test.ts",
+        "packages/baseten/src/baseten-provider.unit.test.ts"
+      ]
+    }
+  ],
+  "swift": {
+    "sources": [
+      "Sources/SwiftAIBaseten/BasetenModels.swift",
+      "Sources/SwiftAIBaseten/BasetenProvider.swift",
+      "Sources/SwiftAIBaseten/BasetenRouting.swift"
+    ],
+    "tests": [
+      "Tests/SwiftAIBasetenTests/BasetenProviderTests.swift",
+      "Tests/SwiftAIBasetenTests/FixtureDownloadTransport.swift",
+      "Tests/SwiftAIBasetenTests/TestSupport.swift"
+    ],
+    "resources": []
+  },
+  "differences": [
+    {
+      "kind": "native-adaptation",
+      "reason": "Preserve Swift async/await, Sendable, Foundation transport and existing documented gaps; see Docs/CoreV6Parity.md and PortingStatus.md."
+    }
+  ],
+  "reviewNote": "M6: provider runtime, configuration and focused tests extracted. Existing upstream baseline, capability boundaries and gaps retained.",
+  "canonicalOnlyReferences": [],
+  "canonicalDirectory": "Packages/swift-ai-baseten"
+}
