@@ -23,7 +23,8 @@
     "tests": [
       "Tests/SwiftAIBasetenTests/BasetenProviderTests.swift",
       "Tests/SwiftAIBasetenTests/FixtureDownloadTransport.swift",
-      "Tests/SwiftAIBasetenTests/TestSupport.swift"
+      "Tests/SwiftAIBasetenTests/TestSupport.swift",
+      "Tests/SwiftAIBasetenTests/Weekly20261101CredentialsTests.swift"
     ],
     "resources": []
   },
