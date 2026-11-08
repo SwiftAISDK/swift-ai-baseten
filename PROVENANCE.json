@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "package": "swift-ai-baseten",
-  "version": "1.1.0",
-  "releaseID": "weekly-upstream-20261101",
+  "version": "1.1.1",
+  "releaseID": "weekly-upstream-20261108",
   "source": {
-    "commit": "ea057797494ab9bb66df8c6bfd8edc10245b20e7",
-    "baseCommit": "ea057797494ab9bb66df8c6bfd8edc10245b20e7",
+    "commit": "8e233ff96fb809445aff9a5c06bb6149a24b94da",
+    "baseCommit": "8e233ff96fb809445aff9a5c06bb6149a24b94da",
     "workingTree": false,
-    "inputsSHA256": "b46f3e07b0a583d6fee81035987d74a06fc5c6109cbdf228144d1172d2c3676e"
+    "inputsSHA256": "987359720075cb67dd8bc45bdc049aee4c5d5a42b67a7eb148e697ce5d18bd77"
   },
   "dependencies": [
     {
@@ -16,34 +16,34 @@
     },
     {
       "package": "swift-ai-openai-compatible",
-      "from": "1.0.0"
+      "from": "1.2.0"
     }
   ],
   "changes": [
     {
-      "id": "weekly-upstream-20261101",
-      "notes": "Add native async throwing apiKeyProvider; resolve a fresh key immediately before every authenticated HTTP send/stream through the shared transport. Preserve static keys, custom header precedence, error/abort propagation, request builders and response parsers. The JavaScript optional performance-client callback/cache changes are retained as a separate JavaScript-only product; Swift uses its existing Foundation HTTP implementation. Reviewed upstream: @ai-sdk/baseten 2.1.56 to 2.1.60. Validation passed: node Scripts/test-packages.mjs (all 52 owning package suites and the compatibility facade); node Scripts/sdk.mjs generate --check; node --test Scripts/tests/*.test.cjs (27 passed); docs-site check and build (100 pages). Live provider calls were not run.",
-      "compatibility": "Minor release for additive native API; existing static settings and call sites remain compatible. Updated direct dependency minimums are recorded in the manifest. Existing documented JS/framework and native product gaps remain; version-delta review does not imply full parity or live-service testing. Explicit custom authentication skips an unused credential supplier, a deliberate native callback-order adaptation."
+      "id": "weekly-upstream-20261108",
+      "notes": "Correct exact serverless DeepSeek JSON/reasoning fallback and restore inherited provider/reasoning options. No new owning public API. Reviewed published upstream delta: @ai-sdk/baseten 2.1.60 to 2.1.65. Validation passed: node Scripts/test-packages.mjs (all 52 owning packages plus the complete local facade; 3,965 reported tests and 33 explicit live skips); node Scripts/sdk.mjs dev test; node Scripts/sdk.mjs generate --check; node --test Scripts/tests/*.test.cjs (27 passed); core/provider isolation and version resolution; 52 deterministic package exports, 106 catalog consumers and four additional exact retained-minimum graphs; docs-site install/check/build (100 pages); git diff --check. No paid live-service calls were run. The publication pipeline requires successful Swift 6.3.3 CI at the exact canonical source before publishing.",
+      "compatibility": "Patch release for behavior/header corrections without new required owning API. Existing call sites and exact old selectors are retained. Direct minimums change only for concrete API use or required inherited behavior. Version-delta review does not establish full-package parity or live-service acceptance. Updated direct ranges: swift-ai-openai-compatible 1.0.0 to 1.2.0."
     }
   ],
   "canonicalDirectory": "Packages/swift-ai-baseten",
   "upstream": [
     {
       "name": "@ai-sdk/baseten",
-      "reviewedVersion": "2.1.60",
+      "reviewedVersion": "2.1.65",
       "ledgerKind": "provider",
-      "evidence": "`AIProviders.baseten`, `OpenAICompatibleProvider`, `BasetenProviderTests.swift`; 2026-11-01 delta: Docs/WeeklyUpstreamAudit20261101.json",
+      "evidence": "`AIProviders.baseten`, `OpenAICompatibleProvider`, `BasetenProviderTests.swift`; 2026-11-01 delta: Docs/WeeklyUpstreamAudit20261101.json; 2026-11-08 delta: Docs/WeeklyUpstreamAudit20261108.json",
       "reviewStatus": "imported-reviewed-with-gaps",
-      "archiveIntegrity": "sha512-d8bOskqnp9oa9JL53Fk4M0iP5q4c1k1q6LQllpjeLIQ3C+7R04CLb+sILtCsxDcWdFpGugP7Ty1m8K6POzMpxw==",
-      "sourceRef": "npm:@ai-sdk/baseten@2.1.60",
-      "testRef": "9b603d36186b75e58d5479445a96c76f6e2d2700",
+      "archiveIntegrity": "sha512-shlKxcU1GXT0IKqu39e1F2WDTP67JTqIuhG/HHyWfMcgrK6dLGiFOE+WaRSDGE0veyfklqbNZdyt/UyFpUFFSQ==",
+      "sourceRef": "npm:@ai-sdk/baseten@2.1.65",
+      "testRef": "0f3a85f92d1ce06ccde01d662407ef83e097a712",
       "testRefRelationship": "matching-release",
       "contractFamilies": [
         "EmbeddingModelV4",
         "LanguageModelV4",
         "ProviderV4"
       ],
-      "contractReview": "2026-11-01: published declarations, source and exact matching-release changed tests reviewed; scoped dispositions and Swift translations are in Docs/WeeklyUpstreamAudit20261101.json. Existing broader product gaps remain; reviewed delta is not full-package parity."
+      "contractReview": "2026-11-08: published declarations/source and exact matching-release changed tests reviewed; native implementations, per-file dispositions and broader retained gaps are recorded in Docs/WeeklyUpstreamAudit20261108.json. Reviewed delta is not full-package or live-service parity."
     }
   ],
   "note": "Independent port. Imported test refs and contract review gaps retain their original status; export is not new upstream parity proof.",
@@ -62,11 +62,11 @@
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Porting/map.json",
-      "sha256": "5f85fd67df7e02d860362026c5543b77d7b403aebd9049393bea17b35d61579b"
+      "sha256": "b48bccc157b82063f37edf720bbb2d2fefab94932dda32c0e9639967686e306a"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/README.md",
-      "sha256": "1b2e5e7e4e677944677b4a82f215782c5dc017bc4d18f5b36d5f831185e93a32"
+      "sha256": "0a44d4d720355abf20e0c4010b38cc3dd1ea01c016d7abcef7c4b25d52e5ddce"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Sources/SwiftAIBaseten/BasetenModels.swift",
@@ -74,7 +74,7 @@
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Sources/SwiftAIBaseten/BasetenProvider.swift",
-      "sha256": "5366ea01861701dc458ee52735319537aa665423f40e330849ea8cba6b873029"
+      "sha256": "6d8bb1cdb8ad9b7a9393056bb3034069e1a43653ec7b812fa3c2b60187bb57bf"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Sources/SwiftAIBaseten/BasetenRouting.swift",
@@ -82,7 +82,7 @@
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Tests/SwiftAIBasetenTests/BasetenProviderTests.swift",
-      "sha256": "dfe1ac14add879531d5f8b5b80c12f713526e386c222ef396ade299470c3f6f2"
+      "sha256": "61d2156206de41b9f986b7fe1480340b93fdb77560042fd87772c2dbf6c3a593"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Tests/SwiftAIBasetenTests/FixtureDownloadTransport.swift",
@@ -95,6 +95,10 @@
     {
       "canonicalPath": "Packages/swift-ai-baseten/Tests/SwiftAIBasetenTests/Weekly20261101CredentialsTests.swift",
       "sha256": "c0063a927a2534de0388bc5399798d72e94b060b8224493cb29d5ab53d30cc4e"
+    },
+    {
+      "canonicalPath": "Packages/swift-ai-baseten/Tests/SwiftAIBasetenTests/Weekly20261108JSONTests.swift",
+      "sha256": "d9f9ccfdd086494afb4b0ea740ad3ec9d6d800f60f7601e55a9745622beeeea8"
     }
   ]
 }

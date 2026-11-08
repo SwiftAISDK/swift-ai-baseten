@@ -24,7 +24,8 @@
       "Tests/SwiftAIBasetenTests/BasetenProviderTests.swift",
       "Tests/SwiftAIBasetenTests/FixtureDownloadTransport.swift",
       "Tests/SwiftAIBasetenTests/TestSupport.swift",
-      "Tests/SwiftAIBasetenTests/Weekly20261101CredentialsTests.swift"
+      "Tests/SwiftAIBasetenTests/Weekly20261101CredentialsTests.swift",
+      "Tests/SwiftAIBasetenTests/Weekly20261108JSONTests.swift"
     ],
     "resources": []
   },
@@ -34,7 +35,7 @@
       "reason": "Preserve Swift async/await, Sendable, Foundation transport and existing documented gaps; see Docs/CoreV6Parity.md and PortingStatus.md."
     }
   ],
-  "reviewNote": "M6: provider runtime, configuration and focused tests extracted. Existing upstream baseline, capability boundaries and gaps retained.",
+  "reviewNote": "2026-11-08: published @ai-sdk/baseten 2.1.60..2.1.65 source, declarations and matching-release tests reviewed independently. Serverless DeepSeek V4 Pro JSON with reasoning uses prompt instructions; explicit reasoning none preserves server formatting. Delta review is not a claim of whole-provider parity; existing documented gaps remain.",
   "canonicalOnlyReferences": [],
   "canonicalDirectory": "Packages/swift-ai-baseten"
 }

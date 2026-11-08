@@ -50,7 +50,7 @@ public final class BasetenProvider: AIProvider, Sendable {
         }
         var headers = normalizeHeaders(configuration.headers)
         headers["authorization"] = headers["authorization"] ?? "Bearer \(key)"
-        headers = withUserAgentSuffix(headers, "ai-sdk-baseten/2.1.60")
+        headers = withUserAgentSuffix(headers, "ai-sdk-baseten/2.1.65")
         let baseURL = withoutTrailingSlash(configuration.baseURL ?? "https://inference.baseten.co/v1")
         let http = AIProviderHTTPClient(providerID: "baseten", headers: headers, transport: configuration.transport,
             url: { _, path in try providerURL("\(baseURL)\(path)", queryParams: configuration.queryParams) })
@@ -100,7 +100,7 @@ public final class BasetenProvider: AIProvider, Sendable {
             http.url = { _, path in try providerURL("\(baseURL)\(path)", queryParams: queryParams) }
         }
         var wire = OpenAICompatibleModelConfiguration(http: http, baseURL: config.baseURL)
-        wire.usesGenericOpenAICompatibleProviderOptions = false
+        wire.usesGenericOpenAICompatibleProviderOptions = true
         wire.allowsEmptyTextResponse = false
         wire.includeUsage = config.includeUsage
         wire.supportsStructuredOutputs = config.supportsStructuredOutputs
@@ -108,6 +108,13 @@ public final class BasetenProvider: AIProvider, Sendable {
         wire.maxEmbeddingsPerCall = config.maxEmbeddingsPerCall
         wire.transformRequestBody = config.transformRequestBody
         wire.transformRequestBodyWithWarnings = config.transformRequestBodyWithWarnings
+        if config.modelURL == nil {
+            let transform = wire.transformRequestBodyWithWarnings
+            wire.transformRequestBodyWithWarnings = { body, warnings in
+                let adjusted = basetenTransformJSONReasoning(body, warnings: &warnings)
+                return transform?(adjusted, &warnings) ?? adjusted
+            }
+        }
         wire.supportsStructuredOutputs = true
         wire.includeUsage = true
         return wire
@@ -119,6 +126,19 @@ public final class BasetenProvider: AIProvider, Sendable {
     public func textEmbeddingModel() throws -> any EmbeddingModel { try embeddingModel() }
 
     public func chatModel(_ modelID: String) throws -> any LanguageModel { try languageModel(modelID) }
+}
+
+func basetenTransformJSONReasoning(_ body: [String: JSONValue], warnings: inout [AIWarning]) -> [String: JSONValue] {
+    guard body["model"]?.stringValue == "deepseek-ai/DeepSeek-V4-Pro-0813",
+          body["reasoning_effort"]?.stringValue != "none",
+          let format = body["response_format"],
+          ["json_schema", "json_object"].contains(format["type"]?.stringValue ?? "") else { return body }
+    var output = body
+    output.removeValue(forKey: "response_format")
+    let instructions = injectJSONInstruction(into: [], schema: format["json_schema"]?["schema"], instruction: .init())
+    output["messages"] = .array(instructions.map { ["role": "system", "content": .string($0.combinedText)] } + (body["messages"]?.arrayValue ?? []))
+    warnings.append(.init(type: "compatibility", feature: "responseFormat", message: "JSON instructions are injected into the system message and response_format is omitted because Baseten DeepSeek V4 Pro 0813 returns JSON as reasoning when JSON mode and reasoning are combined. The response is not constrained by the server."))
+    return output
 }
 
 public extension AIProviders {
