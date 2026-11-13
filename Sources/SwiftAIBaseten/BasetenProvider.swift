@@ -50,7 +50,7 @@ public final class BasetenProvider: AIProvider, Sendable {
         }
         var headers = normalizeHeaders(configuration.headers)
         headers["authorization"] = headers["authorization"] ?? "Bearer \(key)"
-        headers = withUserAgentSuffix(headers, "ai-sdk-baseten/2.1.65")
+        headers = withUserAgentSuffix(headers, "ai-sdk-baseten/2.1.70")
         let baseURL = withoutTrailingSlash(configuration.baseURL ?? "https://inference.baseten.co/v1")
         let http = AIProviderHTTPClient(providerID: "baseten", headers: headers, transport: configuration.transport,
             url: { _, path in try providerURL("\(baseURL)\(path)", queryParams: configuration.queryParams) })

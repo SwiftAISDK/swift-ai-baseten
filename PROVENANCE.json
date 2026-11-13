@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "package": "swift-ai-baseten",
-  "version": "1.1.1",
-  "releaseID": "weekly-upstream-20261108",
+  "version": "1.1.2",
+  "releaseID": "weekly-upstream-20261114",
   "source": {
-    "commit": "8e233ff96fb809445aff9a5c06bb6149a24b94da",
-    "baseCommit": "8e233ff96fb809445aff9a5c06bb6149a24b94da",
+    "commit": "07fbf86b82d83d9724bd03622e9e87e74395286f",
+    "baseCommit": "07fbf86b82d83d9724bd03622e9e87e74395286f",
     "workingTree": false,
-    "inputsSHA256": "987359720075cb67dd8bc45bdc049aee4c5d5a42b67a7eb148e697ce5d18bd77"
+    "inputsSHA256": "63e472c0fe891cb7636d225e1c6467e4761dc3721be68081f2afa9f0b656bb29"
   },
   "dependencies": [
     {
@@ -21,29 +21,29 @@
   ],
   "changes": [
     {
-      "id": "weekly-upstream-20261108",
-      "notes": "Correct exact serverless DeepSeek JSON/reasoning fallback and restore inherited provider/reasoning options. No new owning public API. Reviewed published upstream delta: @ai-sdk/baseten 2.1.60 to 2.1.65. Validation passed: node Scripts/test-packages.mjs (all 52 owning packages plus the complete local facade; 3,965 reported tests and 33 explicit live skips); node Scripts/sdk.mjs dev test; node Scripts/sdk.mjs generate --check; node --test Scripts/tests/*.test.cjs (27 passed); core/provider isolation and version resolution; 52 deterministic package exports, 106 catalog consumers and four additional exact retained-minimum graphs; docs-site install/check/build (100 pages); git diff --check. No paid live-service calls were run. The publication pipeline requires successful Swift 6.3.3 CI at the exact canonical source before publishing.",
-      "compatibility": "Patch release for behavior/header corrections without new required owning API. Existing call sites and exact old selectors are retained. Direct minimums change only for concrete API use or required inherited behavior. Version-delta review does not establish full-package parity or live-service acceptance. Updated direct ranges: swift-ai-openai-compatible 1.0.0 to 1.2.0."
+      "id": "weekly-upstream-20261114",
+      "notes": "Refresh the versioned request identity while retaining the current native request, response and stream behavior. Internal upstream model-catalog reorganizations preserve the existing native policies. Reviewed npm delta: @ai-sdk/baseten 2.1.65 to 2.1.70. Validation: `node Scripts/test-packages.mjs` passed all 52 owning suites and 1731 facade tests; tooling 27/27, generation/isolation checks, standalone exports and 106 minimum/latest consumers, documentation check and 101-page build passed. Publication requires green exact-source Swift 6.3.3 CI. Paid/live verification and full-package parity are not claimed.",
+      "compatibility": "Compatible behavior/header correction. Original public selectors are preserved. npm baselines and Swift SemVer are independent; this reviewed delta does not establish full-package or live-service parity."
     }
   ],
   "canonicalDirectory": "Packages/swift-ai-baseten",
   "upstream": [
     {
       "name": "@ai-sdk/baseten",
-      "reviewedVersion": "2.1.65",
+      "reviewedVersion": "2.1.70",
       "ledgerKind": "provider",
-      "evidence": "`AIProviders.baseten`, `OpenAICompatibleProvider`, `BasetenProviderTests.swift`; 2026-11-01 delta: Docs/WeeklyUpstreamAudit20261101.json; 2026-11-08 delta: Docs/WeeklyUpstreamAudit20261108.json",
+      "evidence": "`AIProviders.baseten`, `OpenAICompatibleProvider`, `BasetenProviderTests.swift`; 2026-11-01 delta: Docs/WeeklyUpstreamAudit20261101.json; 2026-11-08 delta: Docs/WeeklyUpstreamAudit20261108.json; 2026-11-14 delta: Docs/WeeklyUpstreamAudit20261114.json",
       "reviewStatus": "imported-reviewed-with-gaps",
-      "archiveIntegrity": "sha512-shlKxcU1GXT0IKqu39e1F2WDTP67JTqIuhG/HHyWfMcgrK6dLGiFOE+WaRSDGE0veyfklqbNZdyt/UyFpUFFSQ==",
-      "sourceRef": "npm:@ai-sdk/baseten@2.1.65",
-      "testRef": "0f3a85f92d1ce06ccde01d662407ef83e097a712",
+      "archiveIntegrity": "sha512-Di6x62q79FSbq833g1RNPB+hTZ36YeRNKur/MEnrO8FLpfhJXjYUpFnXI+OZZ/HbdKMnfPXwP24EOLW1c5F8lQ==",
+      "sourceRef": "npm:@ai-sdk/baseten@2.1.70",
+      "testRef": "8bc7652cdb13fc84722666eb93f45acd0d131eee",
       "testRefRelationship": "matching-release",
       "contractFamilies": [
         "EmbeddingModelV4",
         "LanguageModelV4",
         "ProviderV4"
       ],
-      "contractReview": "2026-11-08: published declarations/source and exact matching-release changed tests reviewed; native implementations, per-file dispositions and broader retained gaps are recorded in Docs/WeeklyUpstreamAudit20261108.json. Reviewed delta is not full-package or live-service parity."
+      "contractReview": "2026-11-14: verified published source/declarations and exact matching-release changed tests reviewed separately; native ports, per-file dispositions and retained gaps are recorded in Docs/WeeklyUpstreamAudit20261114.json. Delta review is not full-package or live-service parity."
     }
   ],
   "note": "Independent port. Imported test refs and contract review gaps retain their original status; export is not new upstream parity proof.",
@@ -62,7 +62,7 @@
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Porting/map.json",
-      "sha256": "b48bccc157b82063f37edf720bbb2d2fefab94932dda32c0e9639967686e306a"
+      "sha256": "6be6acc6c1a0709b54480dcf2a2da3a8d18daa44d150944a0e81be687bdeafa0"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/README.md",
@@ -74,7 +74,7 @@
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Sources/SwiftAIBaseten/BasetenProvider.swift",
-      "sha256": "6d8bb1cdb8ad9b7a9393056bb3034069e1a43653ec7b812fa3c2b60187bb57bf"
+      "sha256": "bff2cd3d56bdabcd662d11010fe85f3e80a89ad469e3e7f7bb8e793d63b6f0cb"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Sources/SwiftAIBaseten/BasetenRouting.swift",
@@ -82,7 +82,7 @@
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Tests/SwiftAIBasetenTests/BasetenProviderTests.swift",
-      "sha256": "61d2156206de41b9f986b7fe1480340b93fdb77560042fd87772c2dbf6c3a593"
+      "sha256": "37719809c734a50ac28db9d30ad1ce103af88a039c38dd2e5ff8d530b8c4daee"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Tests/SwiftAIBasetenTests/FixtureDownloadTransport.swift",
