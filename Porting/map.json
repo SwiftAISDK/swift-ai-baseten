@@ -9,6 +9,7 @@
         "packages/baseten/src"
       ],
       "tests": [
+        "packages/baseten/src/baseten-chat-language-model.test.ts",
         "packages/baseten/src/baseten-embedding-model.test.ts",
         "packages/baseten/src/baseten-provider.unit.test.ts"
       ]
@@ -22,6 +23,7 @@
     ],
     "tests": [
       "Tests/SwiftAIBasetenTests/BasetenProviderTests.swift",
+      "Tests/SwiftAIBasetenTests/BasetenUpstreamParityTests.swift",
       "Tests/SwiftAIBasetenTests/FixtureDownloadTransport.swift",
       "Tests/SwiftAIBasetenTests/TestSupport.swift",
       "Tests/SwiftAIBasetenTests/Weekly20261101CredentialsTests.swift",

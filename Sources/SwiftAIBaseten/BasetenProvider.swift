@@ -95,20 +95,24 @@ public final class BasetenProvider: AIProvider, Sendable {
     private func compatibleConfiguration(surface: String) throws -> OpenAICompatibleModelConfiguration {
         var http = config.http
         http.providerID = "baseten.\(surface)"
-        if let baseURL = try basetenChatBaseURL(modelURL: config.modelURL) {
+        let dedicatedBaseURL = try basetenChatBaseURL(modelURL: config.modelURL)
+        if let baseURL = dedicatedBaseURL {
             let queryParams = self.queryParams
             http.url = { _, path in try providerURL("\(baseURL)\(path)", queryParams: queryParams) }
         }
         var wire = OpenAICompatibleModelConfiguration(http: http, baseURL: config.baseURL)
         wire.usesGenericOpenAICompatibleProviderOptions = true
-        wire.allowsEmptyTextResponse = false
+        // Upstream returns empty content (no error) when a choice carries no text.
+        wire.allowsEmptyTextResponse = true
         wire.includeUsage = config.includeUsage
         wire.supportsStructuredOutputs = config.supportsStructuredOutputs
         wire.supportsMultiPartToolContent = config.supportsMultiPartToolContent
         wire.maxEmbeddingsPerCall = config.maxEmbeddingsPerCall
         wire.transformRequestBody = config.transformRequestBody
         wire.transformRequestBodyWithWarnings = config.transformRequestBodyWithWarnings
-        if config.modelURL == nil {
+        // Upstream applies the Model APIs body transform whenever the request is not
+        // routed to a dedicated /sync/v1 deployment (including a plain /sync modelURL).
+        if dedicatedBaseURL == nil {
             let transform = wire.transformRequestBodyWithWarnings
             wire.transformRequestBodyWithWarnings = { body, warnings in
                 let adjusted = basetenTransformJSONReasoning(body, warnings: &warnings)

@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "package": "swift-ai-baseten",
-  "version": "1.1.3",
-  "releaseID": "weekly-upstream-20261115",
+  "version": "1.2.0",
+  "releaseID": "upstream-parity-20261116",
   "source": {
-    "commit": "1e543b35e0259a5bda888665dacf2d4a7f1bb0ed",
-    "baseCommit": "1e543b35e0259a5bda888665dacf2d4a7f1bb0ed",
+    "commit": "1c457dea36be42376a6853aecd5c48ffc4942178",
+    "baseCommit": "1c457dea36be42376a6853aecd5c48ffc4942178",
     "workingTree": false,
-    "inputsSHA256": "5508ffc6347bffaed13fb29409eb856df9a7796d3ebdcb6f623d1e8871b52999"
+    "inputsSHA256": "d7b8f52add7828d7e9ed20418fe072e7db03e75483a168bb7f5c34e9d2a04a13"
   },
   "dependencies": [
     {
@@ -21,9 +21,9 @@
   ],
   "changes": [
     {
-      "id": "weekly-upstream-20261115",
-      "notes": "Align the versioned request identity with the reviewed published package while retaining native open String model IDs and existing request, response, option, error, stream and telemetry behavior. Derived TypeScript model-ID/catalog reorganizations preserve the existing native runtime policies. Reviewed npm delta: @ai-sdk/baseten 2.1.70 to 2.1.71. Validation passed: node Scripts/test-packages.mjs (55 owning packages, 2451 owning tests and 1736 compatibility tests), generation checks, 27 tooling tests, isolation/version checks, deterministic exports and minimum-dependency consumers. Documentation check/build passed (104 pages). Publication is gated by exact-source Swift 6.3.3 CI; subsequent public refs and clients are recorded in Docs/ReleaseVerification20261115.json. Paid/live-service checks were not run; this delta does not claim full-package parity.",
-      "compatibility": "Compatible versioned request identity correction; existing public selectors and dependency minimums remain. npm baselines and Swift SemVer are independent."
+      "id": "upstream-parity-20261116",
+      "notes": "Chat, completion and embedding requests follow the upstream OpenAI-compatible behavior, including the DeepSeek JSON transform.",
+      "compatibility": "Source-compatible; changes are additive. Request bodies, results, warnings and errors change to match the reviewed upstream package."
     }
   ],
   "canonicalDirectory": "Packages/swift-ai-baseten",
@@ -32,7 +32,7 @@
       "name": "@ai-sdk/baseten",
       "reviewedVersion": "2.1.71",
       "ledgerKind": "provider",
-      "evidence": "`AIProviders.baseten`, `OpenAICompatibleProvider`, `BasetenProviderTests.swift`; 2026-11-01 delta: Docs/WeeklyUpstreamAudit20261101.json; 2026-11-08 delta: Docs/WeeklyUpstreamAudit20261108.json; 2026-11-14 delta: Docs/WeeklyUpstreamAudit20261114.json; 2026-11-15 delta: Docs/WeeklyUpstreamAudit20261115.json",
+      "evidence": "`AIProviders.baseten`, `OpenAICompatibleProvider`, `BasetenProviderTests.swift`; 2026-11-01 delta: Docs/Archive/WeeklyUpstreamAudit20261101.json; 2026-11-08 delta: Docs/Archive/WeeklyUpstreamAudit20261108.json; 2026-11-14 delta: Docs/Archive/WeeklyUpstreamAudit20261114.json; 2026-11-15 delta: Docs/Archive/WeeklyUpstreamAudit20261115.json",
       "reviewStatus": "imported-reviewed-with-gaps",
       "archiveIntegrity": "sha512-VQp3vyA74ESIsbuu4m8hHjxf+LWYILy1CT6o9gd8xlxzFQRvEPYC7MopczPGmE6Aox6zoV0zyI/A9OlvhF7vwg==",
       "sourceRef": "npm:@ai-sdk/baseten@2.1.71",
@@ -43,7 +43,7 @@
         "LanguageModelV4",
         "ProviderV4"
       ],
-      "contractReview": "2026-11-15: published source/declarations and exact matching-release tests reviewed separately. Native delta scenarios, per-file dispositions, unchanged-catalog evidence and explicit remaining gaps are recorded in Docs/WeeklyUpstreamAudit20261115.json. Required checks remain a separate gate; no full-package/live-service parity claim."
+      "contractReview": "2026-11-15: published source/declarations and exact matching-release tests reviewed separately. Native delta scenarios, per-file dispositions, unchanged-catalog evidence and explicit remaining gaps are recorded in Docs/Archive/WeeklyUpstreamAudit20261115.json. Required checks remain a separate gate; no full-package/live-service parity claim."
     }
   ],
   "note": "Independent port. Imported test refs and contract review gaps retain their original status; export is not new upstream parity proof.",
@@ -62,19 +62,19 @@
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Porting/map.json",
-      "sha256": "325c052683b0a3bc1328dc1291df5216f9061cdd68e0c1fb8703017f5db5a0e3"
+      "sha256": "7bfa38b80e99c5fc6b775adfee407fa8fd6b72aa74d52a1366e60bbf30b2cd21"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/README.md",
-      "sha256": "0a44d4d720355abf20e0c4010b38cc3dd1ea01c016d7abcef7c4b25d52e5ddce"
+      "sha256": "740720c41ff31e8748c66c22e91d117d53b2fba9fb10285c49b0030570941d0b"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Sources/SwiftAIBaseten/BasetenModels.swift",
-      "sha256": "ed115473730d471cb75c70786faca960a25fca3e02d13641ac1a200880f40b29"
+      "sha256": "158285114c47b1b0504da760b342bcc002f8acf1c7cbb4536a245093102f1e86"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Sources/SwiftAIBaseten/BasetenProvider.swift",
-      "sha256": "f72204e43812a120bb09ba72125c2ccd7f90cffceba032e72244420c5002189a"
+      "sha256": "e2370311cbc77f398bdaa266a4f55f0e018ae1b7b90555bafaf69fb8f203c852"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Sources/SwiftAIBaseten/BasetenRouting.swift",
@@ -82,7 +82,11 @@
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Tests/SwiftAIBasetenTests/BasetenProviderTests.swift",
-      "sha256": "6187c64d267e7fd7fc1acf30e4aa57334fd9c5522134315f881b21da2bae9248"
+      "sha256": "a493f05bdce72eafdc8a7bca4eeebbd26670d8b6c4d277e88e8b551237cec063"
+    },
+    {
+      "canonicalPath": "Packages/swift-ai-baseten/Tests/SwiftAIBasetenTests/BasetenUpstreamParityTests.swift",
+      "sha256": "d05dad72a64ce9f89445bce904171fe9057fe74a57607cceec620a28d63d7c63"
     },
     {
       "canonicalPath": "Packages/swift-ai-baseten/Tests/SwiftAIBasetenTests/FixtureDownloadTransport.swift",

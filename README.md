@@ -1,5 +1,5 @@
 <!-- Generated distribution; edit the canonical repository. -->
-# swift-ai-baseten 1.1.3
+# swift-ai-baseten 1.2.0
 
 Independent Swift-native port of Vercel AI SDK. Source and upstream dispositions are in PROVENANCE.json and Porting/.
 
@@ -8,7 +8,7 @@ Independent Swift-native port of Vercel AI SDK. Source and upstream dispositions
 Add this package to your SwiftPM dependencies:
 
 ```swift
-.package(url: "https://github.com/SwiftAISDK/swift-ai-baseten.git", from: "1.1.3")
+.package(url: "https://github.com/SwiftAISDK/swift-ai-baseten.git", from: "1.2.0")
 ```
 
 Products: `SwiftAIBaseten`.
@@ -16,27 +16,29 @@ Contribute and report issues in the canonical SwiftAISDK repository.
 
 ## Authored usage guide
 
-# SwiftAIBaseten
+# Baseten for Swift
 
-Swift-native port of `@ai-sdk/baseten`. Maintained in the canonical SwiftAISDK repository and exported as an independent Swift package.
+`SwiftAIBaseten` adds Baseten to [SwiftAISDK](https://github.com/SwiftAISDK/SwiftAISDK), an independent Swift port of the Vercel AI SDK. It ports `@ai-sdk/baseten` and supports text generation and embeddings.
+
+Provider guide with models, options, streaming and errors:
+
+- [Baseten](https://swiftaisdk.github.io/SwiftAISDK/providers/baseten/)
+
+## Usage
+
+Add the `SwiftAI` product from `swift-ai-core` and the `SwiftAIBaseten` product from this package to your target, then create the provider:
 
 ```swift
+import SwiftAI
 import SwiftAIBaseten
 
-let provider = try BasetenProvider(configuration: .init(apiKey: "..."))
+let provider = try AIProviders.baseten(configuration: BasetenProviderSettings())
 ```
 
-Settings accept a custom base URL, headers, query parameters and an injected
-`AITransport`. Models use the common SwiftAIProvider protocols.
+By default the provider reads `BASETEN_API_KEY` from the environment; values set in `BasetenProviderSettings` take precedence.
 
-Run the standalone suite from the canonical checkout:
+To use every provider through one dependency, add the complete [SwiftAISDK](https://github.com/SwiftAISDK/SwiftAISDK) package instead; see [Install](https://swiftaisdk.github.io/SwiftAISDK/getting-started/install/).
 
-```sh
-swift test --package-path Packages/swift-ai-baseten
-```
+## Contributing
 
-The canonical repository owns all edits. Distribution manifests and repositories
-are generated from the catalog; see `Porting/map.json` and the canonical provider guide.
-## Behavior notes
-
-Chat requests accept `providerOptions.baseten` and portable reasoning options. For the serverless `deepseek-ai/DeepSeek-V4-Pro-0813` endpoint, JSON output with reasoning enabled uses an injected system instruction instead of server JSON constraints and returns a compatibility warning. Explicit reasoning `none`, other models and dedicated `modelURL` deployments retain their response format.
+This package is exported from `Packages/swift-ai-baseten` in the canonical [SwiftAISDK](https://github.com/SwiftAISDK/SwiftAISDK) repository. Open issues and pull requests there.

@@ -261,33 +261,39 @@ import Testing
     }
 }
 
-@Test func basetenEmbeddingBatchesHTTPRequestsAndAdjustsIndexesLikeUpstream() async throws {
-    let values = (0..<129).map { "value-\($0)" }
-    let transport = RecordingTransport(responses: [
-        jsonResponse(#"{"object":"list","data":[{"object":"embedding","embedding":[1],"index":0}],"model":"embed","usage":{"prompt_tokens":2,"total_tokens":2}}"#),
-        jsonResponse(#"{"object":"list","data":[{"object":"embedding","embedding":[2],"index":0}],"model":"embed","usage":{"prompt_tokens":3,"total_tokens":3}}"#)
-    ])
+// baseten-embedding-model.test.ts "batch limit": embedMany splits larger inputs,
+// so a direct call with more than 128 values is rejected before any request.
+@Test func basetenEmbeddingRejectsMoreThan128ValuesLikeUpstream() async throws {
+    let values = (0..<129).map { "value \($0)" }
+    let transport = RecordingTransport(response: jsonResponse(#"{"object":"list","data":[],"model":"embed"}"#))
     let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(
         apiKey: "baseten-key",
         modelURL: "https://model-123.api.baseten.co/environments/production/sync/v1",
         transport: transport
     ))
+    let model = try provider.embeddingModel("embed")
 
-    let result = try await provider.embeddingModel("embed").embed(EmbeddingRequest(values: values))
+    #expect(model.maxEmbeddingsPerCall == 128)
+    await #expect(throws: AITooManyEmbeddingValuesForCallError.self) {
+        _ = try await model.embed(EmbeddingRequest(values: values))
+    }
+    #expect(await transport.requests().isEmpty)
+}
 
-    #expect(result.embeddings == [[1], [2]])
-    #expect(result.usage?.inputTokens == 5)
-    #expect(result.usage?.totalTokens == 5)
-    #expect(result.rawValue["data"]?[0]?["index"]?.intValue == 0)
-    #expect(result.rawValue["data"]?[1]?["index"]?.intValue == 128)
-    let requests = await transport.requests()
-    #expect(requests.count == 2)
-    let firstBody = try decodeJSONBody(try #require(requests[0].body))
-    let secondBody = try decodeJSONBody(try #require(requests[1].body))
-    #expect(firstBody["input"]?.arrayValue?.count == 128)
-    #expect(secondBody["input"]?.arrayValue?.count == 1)
-    #expect(firstBody["model"]?.stringValue == "embed")
-    #expect(secondBody["model"]?.stringValue == "embed")
+@Test func basetenEmbeddingAccepts128ValuesInOneRequestLikeUpstream() async throws {
+    let data = (0..<128).map { #"{"object":"embedding","index":\#($0),"embedding":[0.1]}"# }.joined(separator: ",")
+    let transport = RecordingTransport(response: jsonResponse(#"{"object":"list","data":[\#(data)],"model":"not-required","usage":{"prompt_tokens":8,"total_tokens":8}}"#))
+    let provider = try AIProviders.baseten(configuration: BasetenProviderSettings(
+        apiKey: "baseten-key",
+        modelURL: "https://model-123.api.baseten.co/environments/production/sync",
+        transport: transport
+    ))
+
+    let result = try await provider.embeddingModel().embed(EmbeddingRequest(values: (0..<128).map { "value \($0)" }))
+
+    #expect(result.embeddings.count == 128)
+    #expect(result.usage?.inputTokens == 8)
+    #expect(await transport.requests().count == 1)
 }
 
 @Test func basetenEmbeddingRejectsEmptyInputBeforeRequest() async throws {
